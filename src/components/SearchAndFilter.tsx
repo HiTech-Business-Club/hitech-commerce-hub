@@ -1,5 +1,11 @@
 import { Input } from "./ui/input";
-import { Select } from "./ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 import { Button } from "./ui/button";
 import { Search, SlidersHorizontal } from "lucide-react";
 
@@ -21,15 +27,15 @@ export function SearchAndFilter({ onSearch, onPriceFilter }: SearchAndFilterProp
           />
         </div>
         <Select onValueChange={onPriceFilter}>
-          <Select.Trigger className="w-full sm:w-[180px]">
-            <Select.Value placeholder="Prix" />
-          </Select.Trigger>
-          <Select.Content>
-            <Select.Item value="all">Tous les prix</Select.Item>
-            <Select.Item value="0-100">0€ - 100€</Select.Item>
-            <Select.Item value="100-500">100€ - 500€</Select.Item>
-            <Select.Item value="500+">500€ et plus</Select.Item>
-          </Select.Content>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Prix" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les prix</SelectItem>
+            <SelectItem value="0-100">0€ - 100€</SelectItem>
+            <SelectItem value="100-500">100€ - 500€</SelectItem>
+            <SelectItem value="500+">500€ et plus</SelectItem>
+          </SelectContent>
         </Select>
         <Button variant="outline" size="icon">
           <SlidersHorizontal className="h-4 w-4" />
