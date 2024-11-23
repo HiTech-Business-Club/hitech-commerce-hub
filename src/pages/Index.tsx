@@ -3,7 +3,7 @@ import { Cart } from "@/components/Cart";
 import { Navbar } from "@/components/Navbar";
 import { SearchAndFilter } from "@/components/SearchAndFilter";
 import { CategoryList } from "@/components/CategoryList";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,7 +19,7 @@ export default function Index() {
   const initializeCart = useCartStore((state) => state.initializeCart);
 
   // Initialize cart when user logs in
-  useState(() => {
+  useEffect(() => {
     if (session?.user) {
       initializeCart(session.user.id);
     }

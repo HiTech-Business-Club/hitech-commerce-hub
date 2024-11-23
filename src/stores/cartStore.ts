@@ -68,7 +68,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
       set({
         cartId: cart.id,
         items: items.map((item) => ({
-          id: item.products.id,
+          id: item.products.id.toString(),
           name: item.products.name,
           price: item.products.price,
           quantity: item.quantity,
