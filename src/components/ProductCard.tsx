@@ -3,6 +3,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { ShoppingCart, Heart } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
 import { useFavorites } from "@/hooks/useFavorites";
+import { usePrice } from "@/hooks/usePrice";
 import { cn } from "@/lib/utils";
 
 interface ProductCardProps {
@@ -15,6 +16,7 @@ interface ProductCardProps {
 export function ProductCard({ id, name, price, image }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem);
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { formatPrice } = usePrice();
   const productId = parseInt(id);
 
   return (
@@ -44,7 +46,7 @@ export function ProductCard({ id, name, price, image }: ProductCardProps) {
       <CardFooter className="flex flex-col items-start gap-2 p-4">
         <div className="flex-1">
           <h3 className="font-medium">{name}</h3>
-          <p className="text-sm text-muted-foreground">{price.toFixed(2)} €</p>
+          <p className="text-sm text-muted-foreground">{formatPrice(price)}</p>
         </div>
         <Button
           className="w-full"

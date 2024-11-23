@@ -4,6 +4,7 @@ import { ShoppingCart, Menu, X, LogOut, Sun, Moon } from "lucide-react";
 import { Button } from "./ui/button";
 import { AuthModal } from "./AuthModal";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { CurrencySwitcher } from "./CurrencySwitcher";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { toast } from "./ui/use-toast";
@@ -13,12 +14,12 @@ import {
   NavigationMenu,
   NavigationMenuContent,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Cart } from "./Cart";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -71,16 +72,15 @@ export function Navbar() {
                     <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
                       {categories?.map((category) => (
                         <li key={category.id}>
-                          <NavigationMenuLink asChild>
-                            <Link
-                              to={`/category/${category.slug}`}
-                              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                            >
-                              <div className="text-sm font-medium leading-none">
-                                {category.name}
-                              </div>
-                            </Link>
-                          </NavigationMenuLink>
+                          <Link
+                            to={`/category/${category.slug}`}
+                            className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                            onClick={() => setIsOpen(false)}
+                          >
+                            <div className="text-sm font-medium leading-none">
+                              {category.name}
+                            </div>
+                          </Link>
                         </li>
                       ))}
                     </ul>
@@ -91,7 +91,10 @@ export function Navbar() {
             <Link to="/about" className="hover:text-accent transition-colors">
               {t('nav.about')}
             </Link>
-            <LanguageSwitcher />
+            <div className="flex items-center space-x-2">
+              <LanguageSwitcher />
+              <CurrencySwitcher />
+            </div>
             <Button
               variant="ghost"
               size="icon"
@@ -103,9 +106,7 @@ export function Navbar() {
                 <Sun className="h-5 w-5" />
               )}
             </Button>
-            <Button variant="ghost" size="icon">
-              <ShoppingCart className="h-5 w-5" />
-            </Button>
+            <Cart />
             {session ? (
               <div className="flex items-center space-x-4">
                 <Avatar>
@@ -148,6 +149,10 @@ export function Navbar() {
               >
                 {t('nav.about')}
               </Link>
+              <div className="flex items-center space-x-2">
+                <LanguageSwitcher />
+                <CurrencySwitcher />
+              </div>
               <Button
                 variant="ghost"
                 className="justify-start"
@@ -168,9 +173,7 @@ export function Navbar() {
                   </>
                 )}
               </Button>
-              <Button variant="ghost" size="icon">
-                <ShoppingCart className="h-5 w-5" />
-              </Button>
+              <Cart />
               {session ? (
                 <div className="flex items-center space-x-4">
                   <Avatar>
