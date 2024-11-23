@@ -1,6 +1,8 @@
 import { ProductCard } from "@/components/ProductCard";
 import { Cart } from "@/components/Cart";
 import { Navbar } from "@/components/Navbar";
+import { SearchAndFilter } from "@/components/SearchAndFilter";
+import { useState } from "react";
 
 // Mock data - à remplacer par une vraie API plus tard
 const products = [
@@ -31,6 +33,33 @@ const products = [
 ];
 
 export default function Index() {
+  const [filteredProducts, setFilteredProducts] = useState(products);
+
+  const handleSearch = (query: string) => {
+    const filtered = products.filter((product) =>
+      product.name.toLowerCase().includes(query.toLowerCase())
+    );
+    setFilteredProducts(filtered);
+  };
+
+  const handlePriceFilter = (range: string) => {
+    let filtered = [...products];
+    switch (range) {
+      case "0-100":
+        filtered = products.filter((p) => p.price <= 100);
+        break;
+      case "100-500":
+        filtered = products.filter((p) => p.price > 100 && p.price <= 500);
+        break;
+      case "500+":
+        filtered = products.filter((p) => p.price > 500);
+        break;
+      default:
+        filtered = products;
+    }
+    setFilteredProducts(filtered);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -39,8 +68,9 @@ export default function Index() {
           <h1 className="text-4xl font-bold font-heading">Nos Produits</h1>
           <Cart />
         </div>
+        <SearchAndFilter onSearch={handleSearch} onPriceFilter={handlePriceFilter} />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {products.map((product) => (
+          {filteredProducts.map((product) => (
             <ProductCard
               key={product.id}
               id={product.id}
