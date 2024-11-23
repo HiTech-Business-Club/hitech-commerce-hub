@@ -3,10 +3,12 @@ import { Link } from "react-router-dom";
 import { ShoppingCart, Menu, X, LogOut, Sun, Moon } from "lucide-react";
 import { Button } from "./ui/button";
 import { AuthModal } from "./AuthModal";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { toast } from "./ui/use-toast";
 import { useTheme } from "./ThemeProvider";
+import { useTranslation } from "react-i18next";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -23,6 +25,7 @@ export function Navbar() {
   const session = useSession();
   const supabaseClient = useSupabaseClient();
   const { theme, setTheme } = useTheme();
+  const { t } = useTranslation();
 
   const { data: categories } = useQuery({
     queryKey: ["categories"],
@@ -59,12 +62,11 @@ export function Navbar() {
             HiTech Store
           </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <NavigationMenu>
               <NavigationMenuList>
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger>Catégories</NavigationMenuTrigger>
+                  <NavigationMenuTrigger>{t('nav.categories')}</NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
                       {categories?.map((category) => (
@@ -87,8 +89,9 @@ export function Navbar() {
               </NavigationMenuList>
             </NavigationMenu>
             <Link to="/about" className="hover:text-accent transition-colors">
-              À propos
+              {t('nav.about')}
             </Link>
+            <LanguageSwitcher />
             <Button
               variant="ghost"
               size="icon"
@@ -120,13 +123,11 @@ export function Navbar() {
             )}
           </div>
 
-          {/* Mobile Navigation Button */}
           <button className="md:hidden" onClick={() => setIsOpen(!isOpen)}>
             {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
 
-        {/* Mobile Navigation Menu */}
         {isOpen && (
           <div className="md:hidden pb-4 animate-fade-in">
             <div className="flex flex-col space-y-4">
@@ -145,7 +146,7 @@ export function Navbar() {
                 className="hover:text-accent transition-colors"
                 onClick={() => setIsOpen(false)}
               >
-                À propos
+                {t('nav.about')}
               </Link>
               <Button
                 variant="ghost"
@@ -179,7 +180,7 @@ export function Navbar() {
                     </AvatarFallback>
                   </Avatar>
                   <Button variant="ghost" onClick={handleLogout}>
-                    Se déconnecter
+                    {t('nav.logout')}
                   </Button>
                 </div>
               ) : (
