@@ -8,18 +8,35 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { useSession } from "@supabase/auth-helpers-react";
+import { useCartStore } from "@/stores/cartStore";
 
 export default function Index() {
   const [searchQuery, setSearchQuery] = useState("");
   const [priceRange, setPriceRange] = useState("");
+  const [sortBy, setSortBy] = useState("");
+  const session = useSession();
+  const initializeCart = useCartStore((state) => state.initializeCart);
 
-  const { data: products, isLoading, error } = useQuery({
-    queryKey: ['products'],
+  // Initialize cart when user logs in
+  useState(() => {
+    if (session?.user) {
+      initializeCart(session.user.id);
+    }
+  }, [session?.user, initializeCart]);
+
+  const { data: products, isLoading } = useQuery({
+    queryKey: ["products", sortBy],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*');
-      
+      let query = supabase.from("products").select("*");
+
+      if (sortBy) {
+        const [field, direction] = sortBy.split("-");
+        query = query.order(field, { ascending: direction === "asc" });
+      }
+
+      const { data, error } = await query;
+
       if (error) {
         toast("Erreur", {
           description: "Impossible de charger les produits",
@@ -30,6 +47,8 @@ export default function Index() {
     },
   });
 
+  const maxPrice = Math.max(...(products?.map((p) => p.price || 0) || [0]));
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };
@@ -38,23 +57,18 @@ export default function Index() {
     setPriceRange(range);
   };
 
+  const handleSortChange = (sort: string) => {
+    setSortBy(sort);
+  };
+
   const filteredProducts = products?.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
     let matchesPrice = true;
 
     if (priceRange) {
+      const [min, max] = priceRange.split("-").map(Number);
       const price = product.price || 0;
-      switch (priceRange) {
-        case "0-100":
-          matchesPrice = price <= 100;
-          break;
-        case "100-500":
-          matchesPrice = price > 100 && price <= 500;
-          break;
-        case "500+":
-          matchesPrice = price > 500;
-          break;
-      }
+      matchesPrice = price >= min && price <= max;
     }
 
     return matchesSearch && matchesPrice;
@@ -76,7 +90,12 @@ export default function Index() {
 
         <section>
           <h2 className="text-2xl font-bold font-heading mb-6">Tous les produits</h2>
-          <SearchAndFilter onSearch={handleSearch} onPriceFilter={handlePriceFilter} />
+          <SearchAndFilter
+            onSearch={handleSearch}
+            onPriceFilter={handlePriceFilter}
+            onSortChange={handleSortChange}
+            maxPrice={maxPrice}
+          />
           
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -87,10 +106,6 @@ export default function Index() {
                   <Skeleton className="h-4 w-1/3" />
                 </div>
               ))}
-            </div>
-          ) : error ? (
-            <div className="text-center text-red-500">
-              Une erreur est survenue lors du chargement des produits.
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

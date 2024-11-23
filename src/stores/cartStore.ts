@@ -1,4 +1,6 @@
-import { create } from 'zustand';
+import { create } from "zustand";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface CartItem {
   id: string;
@@ -10,47 +12,178 @@ interface CartItem {
 
 interface CartStore {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, 'quantity'>, quantity: number) => void;
-  removeItem: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
-  clearCart: () => void;
+  cartId: string | null;
+  isLoading: boolean;
+  addItem: (item: Omit<CartItem, "quantity">, quantity: number) => Promise<void>;
+  removeItem: (id: string) => Promise<void>;
+  updateQuantity: (id: string, quantity: number) => Promise<void>;
+  clearCart: () => Promise<void>;
+  initializeCart: (userId: string) => Promise<void>;
   total: number;
 }
 
 export const useCartStore = create<CartStore>((set, get) => ({
   items: [],
-  addItem: (item, quantity) => {
-    set((state) => {
-      const existingItem = state.items.find((i) => i.id === item.id);
-      if (existingItem) {
-        return {
-          items: state.items.map((i) =>
-            i.id === item.id
-              ? { ...i, quantity: i.quantity + quantity }
-              : i
-          ),
-        };
+  cartId: null,
+  isLoading: false,
+
+  initializeCart: async (userId: string) => {
+    set({ isLoading: true });
+    try {
+      // Get or create cart
+      let { data: cart } = await supabase
+        .from("carts")
+        .select("id")
+        .eq("user_id", userId)
+        .single();
+
+      if (!cart) {
+        const { data: newCart, error } = await supabase
+          .from("carts")
+          .insert({ user_id: userId })
+          .select("id")
+          .single();
+
+        if (error) throw error;
+        cart = newCart;
       }
-      return {
+
+      // Get cart items
+      const { data: items, error } = await supabase
+        .from("cart_items")
+        .select(`
+          id,
+          quantity,
+          products (
+            id,
+            name,
+            price,
+            image_url
+          )
+        `)
+        .eq("cart_id", cart.id);
+
+      if (error) throw error;
+
+      set({
+        cartId: cart.id,
+        items: items.map((item) => ({
+          id: item.products.id,
+          name: item.products.name,
+          price: item.products.price,
+          quantity: item.quantity,
+          image: item.products.image_url,
+        })),
+      });
+    } catch (error) {
+      toast("Erreur", {
+        description: "Impossible de charger le panier",
+      });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  addItem: async (item, quantity) => {
+    const { cartId } = get();
+    if (!cartId) return;
+
+    try {
+      const { error } = await supabase.from("cart_items").insert({
+        cart_id: cartId,
+        product_id: parseInt(item.id),
+        quantity,
+      });
+
+      if (error) throw error;
+
+      set((state) => ({
         items: [...state.items, { ...item, quantity }],
-      };
-    });
+      }));
+
+      toast("Produit ajouté", {
+        description: `${item.name} a été ajouté à votre panier`,
+      });
+    } catch (error) {
+      toast("Erreur", {
+        description: "Impossible d'ajouter le produit au panier",
+      });
+    }
   },
-  removeItem: (id) => {
-    set((state) => ({
-      items: state.items.filter((item) => item.id !== id),
-    }));
+
+  removeItem: async (id: string) => {
+    const { cartId } = get();
+    if (!cartId) return;
+
+    try {
+      const { error } = await supabase
+        .from("cart_items")
+        .delete()
+        .eq("cart_id", cartId)
+        .eq("product_id", id);
+
+      if (error) throw error;
+
+      set((state) => ({
+        items: state.items.filter((item) => item.id !== id),
+      }));
+    } catch (error) {
+      toast("Erreur", {
+        description: "Impossible de supprimer le produit du panier",
+      });
+    }
   },
-  updateQuantity: (id, quantity) => {
-    set((state) => ({
-      items: quantity === 0
-        ? state.items.filter((item) => item.id !== id)
-        : state.items.map((item) =>
-            item.id === id ? { ...item, quantity } : item
-          ),
-    }));
+
+  updateQuantity: async (id: string, quantity: number) => {
+    const { cartId } = get();
+    if (!cartId) return;
+
+    try {
+      if (quantity === 0) {
+        await get().removeItem(id);
+        return;
+      }
+
+      const { error } = await supabase
+        .from("cart_items")
+        .update({ quantity })
+        .eq("cart_id", cartId)
+        .eq("product_id", id);
+
+      if (error) throw error;
+
+      set((state) => ({
+        items: state.items.map((item) =>
+          item.id === id ? { ...item, quantity } : item
+        ),
+      }));
+    } catch (error) {
+      toast("Erreur", {
+        description: "Impossible de mettre à jour la quantité",
+      });
+    }
   },
-  clearCart: () => set({ items: [] }),
+
+  clearCart: async () => {
+    const { cartId } = get();
+    if (!cartId) return;
+
+    try {
+      const { error } = await supabase
+        .from("cart_items")
+        .delete()
+        .eq("cart_id", cartId);
+
+      if (error) throw error;
+
+      set({ items: [] });
+    } catch (error) {
+      toast("Erreur", {
+        description: "Impossible de vider le panier",
+      });
+    }
+  },
+
   get total() {
     return get().items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   },

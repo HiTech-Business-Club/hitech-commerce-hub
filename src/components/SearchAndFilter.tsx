@@ -1,63 +1,64 @@
-import { useCallback, useState } from "react";
-import { Input } from "./ui/input";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
-import { Button } from "./ui/button";
-import { Search, SlidersHorizontal } from "lucide-react";
-import debounce from "lodash/debounce";
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { useState } from "react";
 
 interface SearchAndFilterProps {
   onSearch: (query: string) => void;
   onPriceFilter: (range: string) => void;
+  onSortChange: (sort: string) => void;
+  maxPrice: number;
 }
 
-export function SearchAndFilter({ onSearch, onPriceFilter }: SearchAndFilterProps) {
-  const [searchValue, setSearchValue] = useState("");
-
-  const debouncedSearch = useCallback(
-    debounce((value: string) => {
-      onSearch(value);
-    }, 300),
-    [onSearch]
-  );
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchValue(value);
-    debouncedSearch(value);
-  };
+export function SearchAndFilter({
+  onSearch,
+  onPriceFilter,
+  onSortChange,
+  maxPrice,
+}: SearchAndFilterProps) {
+  const [priceRange, setPriceRange] = useState([0, maxPrice]);
 
   return (
-    <div className="w-full space-y-4 mb-8 animate-fade-in">
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher un produit..."
-            className="pl-10"
-            value={searchValue}
-            onChange={handleSearchChange}
-          />
-        </div>
-        <Select onValueChange={onPriceFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Prix" />
+    <div className="space-y-4 mb-8">
+      <div className="grid gap-4 md:grid-cols-3">
+        <Input
+          placeholder="Rechercher un produit..."
+          onChange={(e) => onSearch(e.target.value)}
+          className="w-full"
+        />
+        <Select onValueChange={onSortChange}>
+          <SelectTrigger>
+            <SelectValue placeholder="Trier par" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les prix</SelectItem>
-            <SelectItem value="0-100">0€ - 100€</SelectItem>
-            <SelectItem value="100-500">100€ - 500€</SelectItem>
-            <SelectItem value="500+">500€ et plus</SelectItem>
+            <SelectItem value="price-asc">Prix croissant</SelectItem>
+            <SelectItem value="price-desc">Prix décroissant</SelectItem>
+            <SelectItem value="name-asc">Nom A-Z</SelectItem>
+            <SelectItem value="name-desc">Nom Z-A</SelectItem>
           </SelectContent>
         </Select>
-        <Button variant="outline" size="icon">
-          <SlidersHorizontal className="h-4 w-4" />
-        </Button>
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium">
+          Prix: {priceRange[0]}€ - {priceRange[1]}€
+        </label>
+        <Slider
+          min={0}
+          max={maxPrice}
+          step={10}
+          value={priceRange}
+          onValueChange={(value) => {
+            setPriceRange(value);
+            onPriceFilter(`${value[0]}-${value[1]}`);
+          }}
+          className="w-full"
+        />
       </div>
     </div>
   );

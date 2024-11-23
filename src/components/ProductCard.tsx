@@ -1,8 +1,9 @@
-import { Link } from "react-router-dom";
-import { Card, CardContent, CardFooter } from "./ui/card";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { ShoppingCart, Heart } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
-import { toast } from "sonner";
+import { useFavorites } from "@/hooks/useFavorites";
+import { cn } from "@/lib/utils";
 
 interface ProductCardProps {
   id: string;
@@ -12,51 +13,44 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ id, name, price, image }: ProductCardProps) {
-  const { addItem } = useCartStore();
-
-  const handleAddToCart = () => {
-    try {
-      addItem({
-        id,
-        name,
-        price,
-        image,
-        quantity: 1,
-      }, 1);
-      toast("Produit ajouté au panier", {
-        description: `${name} a été ajouté à votre panier`,
-        duration: 3000,
-      });
-    } catch (error) {
-      toast("Erreur", {
-        description: "Impossible d'ajouter le produit au panier",
-        duration: 3000,
-      });
-    }
-  };
+  const addItem = useCartStore((state) => state.addItem);
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const productId = parseInt(id);
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow animate-fade-in">
+    <Card className="overflow-hidden">
       <CardContent className="p-0">
-        <div className="relative group">
+        <div className="relative aspect-square">
           <img
-            src={image}
+            src={image || "/placeholder.svg"}
             alt={name}
-            className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+            className="object-cover w-full h-full"
             loading="lazy"
           />
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        </div>
-        <div className="p-4">
-          <h3 className="font-heading text-lg font-semibold line-clamp-2 mb-2">{name}</h3>
-          <p className="text-accent font-semibold">{price.toFixed(2)} €</p>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-2 right-2 bg-background/50 backdrop-blur-sm hover:bg-background/75"
+            onClick={() => toggleFavorite(productId)}
+          >
+            <Heart
+              className={cn("h-5 w-5", {
+                "fill-red-500 stroke-red-500": isFavorite(productId),
+              })}
+            />
+          </Button>
         </div>
       </CardContent>
-      <CardFooter className="p-4 pt-0 flex justify-between gap-2">
-        <Button asChild variant="outline" className="flex-1">
-          <Link to={`/product/${id}`}>Détails</Link>
-        </Button>
-        <Button onClick={handleAddToCart} className="flex-1">
+      <CardFooter className="flex flex-col items-start gap-2 p-4">
+        <div className="flex-1">
+          <h3 className="font-medium">{name}</h3>
+          <p className="text-sm text-muted-foreground">{price.toFixed(2)} €</p>
+        </div>
+        <Button
+          className="w-full"
+          onClick={() => addItem({ id, name, price, image }, 1)}
+        >
+          <ShoppingCart className="mr-2 h-4 w-4" />
           Ajouter au panier
         </Button>
       </CardFooter>
