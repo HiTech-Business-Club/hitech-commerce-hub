@@ -15,29 +15,39 @@ export function ProductCard({ id, name, price, image }: ProductCardProps) {
   const { addItem } = useCartStore();
 
   const handleAddToCart = () => {
-    addItem({
-      id,
-      name,
-      price,
-      image,
-      quantity: 1,
-    });
-    toast("Produit ajouté", {
-      description: `${name} a été ajouté à votre panier`,
-    });
+    try {
+      addItem({
+        id,
+        name,
+        price,
+        image,
+        quantity: 1,
+      });
+      toast("Produit ajouté", {
+        description: `${name} a été ajouté à votre panier`,
+      });
+    } catch (error) {
+      toast("Erreur", {
+        description: "Impossible d'ajouter le produit au panier",
+      });
+    }
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow animate-fade-in">
       <CardContent className="p-0">
-        <img
-          src={image}
-          alt={name}
-          className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
-        />
+        <div className="relative group">
+          <img
+            src={image}
+            alt={name}
+            className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        </div>
         <div className="p-4">
-          <h3 className="font-heading text-lg font-semibold line-clamp-2">{name}</h3>
-          <p className="text-accent font-semibold mt-2">{price.toFixed(2)} €</p>
+          <h3 className="font-heading text-lg font-semibold line-clamp-2 mb-2">{name}</h3>
+          <p className="text-accent font-semibold">{price.toFixed(2)} €</p>
         </div>
       </CardContent>
       <CardFooter className="p-4 pt-0 flex justify-between gap-2">

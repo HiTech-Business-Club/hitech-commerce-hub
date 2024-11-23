@@ -1,3 +1,4 @@
+import { useCallback, useState } from "react";
 import { Input } from "./ui/input";
 import {
   Select,
@@ -8,6 +9,7 @@ import {
 } from "./ui/select";
 import { Button } from "./ui/button";
 import { Search, SlidersHorizontal } from "lucide-react";
+import debounce from "lodash/debounce";
 
 interface SearchAndFilterProps {
   onSearch: (query: string) => void;
@@ -15,6 +17,21 @@ interface SearchAndFilterProps {
 }
 
 export function SearchAndFilter({ onSearch, onPriceFilter }: SearchAndFilterProps) {
+  const [searchValue, setSearchValue] = useState("");
+
+  const debouncedSearch = useCallback(
+    debounce((value: string) => {
+      onSearch(value);
+    }, 300),
+    [onSearch]
+  );
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchValue(value);
+    debouncedSearch(value);
+  };
+
   return (
     <div className="w-full space-y-4 mb-8 animate-fade-in">
       <div className="flex flex-col sm:flex-row gap-4">
@@ -23,7 +40,8 @@ export function SearchAndFilter({ onSearch, onPriceFilter }: SearchAndFilterProp
           <Input
             placeholder="Rechercher un produit..."
             className="pl-10"
-            onChange={(e) => onSearch(e.target.value)}
+            value={searchValue}
+            onChange={handleSearchChange}
           />
         </div>
         <Select onValueChange={onPriceFilter}>
