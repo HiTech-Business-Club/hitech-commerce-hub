@@ -8,79 +8,53 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { useToast } from "./ui/use-toast";
+import { Auth } from "@supabase/auth-ui-react";
+import { ThemeSupa } from "@supabase/auth-ui-shared";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 export function AuthModal() {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const { toast } = useToast();
+  const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // TODO: Implement actual authentication
-    toast({
-      title: isLogin ? "Connexion réussie" : "Compte créé avec succès",
-      description: "Bienvenue sur HiTech Store!",
-    });
-  };
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_IN") {
+      setIsOpen(false);
+      navigate("/");
+    }
+  });
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">
-          {isLogin ? "Se connecter" : "S'inscrire"}
-        </Button>
+        <Button variant="outline">Se connecter</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>
-            {isLogin ? "Se connecter" : "Créer un compte"}
-          </DialogTitle>
+          <DialogTitle>Connexion / Inscription</DialogTitle>
           <DialogDescription>
-            {isLogin
-              ? "Connectez-vous pour accéder à votre compte"
-              : "Créez un compte pour commencer vos achats"}
+            Connectez-vous ou créez un compte pour commencer
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Mot de passe</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <div className="flex flex-col space-y-2">
-            <Button type="submit">
-              {isLogin ? "Se connecter" : "Créer un compte"}
-            </Button>
-            <Button
-              type="button"
-              variant="link"
-              onClick={() => setIsLogin(!isLogin)}
-            >
-              {isLogin
-                ? "Pas encore de compte ? S'inscrire"
-                : "Déjà un compte ? Se connecter"}
-            </Button>
-          </div>
-        </form>
+        <Auth
+          supabaseClient={supabase}
+          appearance={{ theme: ThemeSupa }}
+          providers={["google", "github"]}
+          localization={{
+            variables: {
+              sign_in: {
+                email_label: "Email",
+                password_label: "Mot de passe",
+                button_label: "Se connecter",
+              },
+              sign_up: {
+                email_label: "Email",
+                password_label: "Mot de passe",
+                button_label: "S'inscrire",
+              },
+            },
+          }}
+        />
       </DialogContent>
     </Dialog>
   );
