@@ -23,7 +23,7 @@ export function ProductCard({ id, name, price, image }: ProductCardProps) {
         image,
         quantity: 1,
       });
-      toast.success("Produit ajouté", {
+      toast.success("Produit ajouté au panier", {
         description: `${name} a été ajouté à votre panier`,
       });
     } catch (error) {
