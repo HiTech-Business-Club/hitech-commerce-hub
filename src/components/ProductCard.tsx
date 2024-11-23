@@ -23,11 +23,11 @@ export function ProductCard({ id, name, price, image }: ProductCardProps) {
         image,
         quantity: 1,
       });
-      toast.success("Produit ajouté", {
+      toast("Produit ajouté", {
         description: `${name} a été ajouté à votre panier`,
       });
     } catch (error) {
-      toast.error("Erreur", {
+      toast("Erreur", {
         description: "Impossible d'ajouter le produit au panier",
       });
     }
