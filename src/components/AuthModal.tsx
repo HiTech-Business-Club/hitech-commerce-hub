@@ -39,7 +39,6 @@ export function AuthModal() {
         <Auth
           supabaseClient={supabase}
           appearance={{ theme: ThemeSupa }}
-          providers={["google", "github"]}
           localization={{
             variables: {
               sign_in: {
