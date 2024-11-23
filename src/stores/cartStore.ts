@@ -43,9 +43,11 @@ export const useCartStore = create<CartStore>((set, get) => ({
   },
   updateQuantity: (id, quantity) => {
     set((state) => ({
-      items: state.items.map((item) =>
-        item.id === id ? { ...item, quantity } : item
-      ),
+      items: quantity === 0
+        ? state.items.filter((item) => item.id !== id)
+        : state.items.map((item) =>
+            item.id === id ? { ...item, quantity } : item
+          ),
     }));
   },
   clearCart: () => set({ items: [] }),

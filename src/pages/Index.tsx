@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 export default function Index() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -21,10 +21,8 @@ export default function Index() {
         .select('*');
       
       if (error) {
-        toast({
-          title: "Error",
+        toast("Erreur", {
           description: "Impossible de charger les produits",
-          variant: "destructive",
         });
         throw error;
       }

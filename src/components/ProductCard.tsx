@@ -22,7 +22,7 @@ export function ProductCard({ id, name, price, image }: ProductCardProps) {
         price,
         image,
         quantity: 1,
-      });
+      }, 1);
       toast("Produit ajouté au panier", {
         description: `${name} a été ajouté à votre panier`,
         duration: 3000,
