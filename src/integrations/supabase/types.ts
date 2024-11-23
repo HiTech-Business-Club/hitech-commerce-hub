@@ -69,6 +69,30 @@ export type Database = {
         }
         Relationships: []
       }
+      categories: {
+        Row: {
+          created_at: string | null
+          id: number
+          image_url: string | null
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          image_url?: string | null
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          image_url?: string | null
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string
@@ -100,27 +124,47 @@ export type Database = {
       }
       products: {
         Row: {
+          category_id: number | null
           created_at: string | null
+          description: string | null
+          featured: boolean | null
           id: number
           image_url: string | null
           name: string
           price: number | null
+          stock: number | null
         }
         Insert: {
+          category_id?: number | null
           created_at?: string | null
+          description?: string | null
+          featured?: boolean | null
           id?: number
           image_url?: string | null
           name: string
           price?: number | null
+          stock?: number | null
         }
         Update: {
+          category_id?: number | null
           created_at?: string | null
+          description?: string | null
+          featured?: boolean | null
           id?: number
           image_url?: string | null
           name?: string
           price?: number | null
+          stock?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_category"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

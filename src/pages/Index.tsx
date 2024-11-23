@@ -3,6 +3,7 @@ import { Cart } from "@/components/Cart";
 import { Navbar } from "@/components/Navbar";
 import { SearchAndFilter } from "@/components/SearchAndFilter";
 import { CategoryList } from "@/components/CategoryList";
+import { FeaturedProducts } from "@/components/FeaturedProducts";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -79,6 +80,11 @@ export default function Index() {
           <h1 className="text-4xl font-bold font-heading">Nos Produits</h1>
           <Cart />
         </div>
+
+        <section className="mb-12">
+          <h2 className="text-2xl font-bold font-heading mb-6">Produits Vedettes</h2>
+          <FeaturedProducts />
+        </section>
         
         <section className="mb-12">
           <h2 className="text-2xl font-bold font-heading mb-6">Catégories</h2>
@@ -100,7 +106,7 @@ export default function Index() {
                 <div key={i} className="space-y-4">
                   <Skeleton className="h-48 w-full" />
                   <Skeleton className="h-4 w-2/3" />
-                  <Skeleton className="h-4 w-1/3" />
+                  <Skeleton className="h-4 w-1/2" />
                 </div>
               ))}
             </div>

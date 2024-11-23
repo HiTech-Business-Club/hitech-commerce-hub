@@ -1,19 +1,42 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ShoppingCart, Menu, X, LogOut } from "lucide-react";
+import { ShoppingCart, Menu, X, LogOut, Sun, Moon } from "lucide-react";
 import { Button } from "./ui/button";
 import { AuthModal } from "./AuthModal";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { toast } from "./ui/use-toast";
+import { useTheme } from "./ThemeProvider";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const session = useSession();
-  const supabase = useSupabaseClient();
+  const supabaseClient = useSupabaseClient();
+  const { theme, setTheme } = useTheme();
+
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*");
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
+    const { error } = await supabaseClient.auth.signOut();
     if (error) {
       toast({
         title: "Erreur",
@@ -38,15 +61,45 @@ export function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link to="/products" className="hover:text-accent transition-colors">
-              Produits
-            </Link>
-            <Link to="/categories" className="hover:text-accent transition-colors">
-              Catégories
-            </Link>
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger>Catégories</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                      {categories?.map((category) => (
+                        <li key={category.id}>
+                          <NavigationMenuLink asChild>
+                            <Link
+                              to={`/category/${category.slug}`}
+                              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                            >
+                              <div className="text-sm font-medium leading-none">
+                                {category.name}
+                              </div>
+                            </Link>
+                          </NavigationMenuLink>
+                        </li>
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
             <Link to="/about" className="hover:text-accent transition-colors">
               À propos
             </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+            >
+              {theme === "light" ? (
+                <Moon className="h-5 w-5" />
+              ) : (
+                <Sun className="h-5 w-5" />
+              )}
+            </Button>
             <Button variant="ghost" size="icon">
               <ShoppingCart className="h-5 w-5" />
             </Button>
@@ -77,20 +130,16 @@ export function Navbar() {
         {isOpen && (
           <div className="md:hidden pb-4 animate-fade-in">
             <div className="flex flex-col space-y-4">
-              <Link
-                to="/products"
-                className="hover:text-accent transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                Produits
-              </Link>
-              <Link
-                to="/categories"
-                className="hover:text-accent transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                Catégories
-              </Link>
+              {categories?.map((category) => (
+                <Link
+                  key={category.id}
+                  to={`/category/${category.slug}`}
+                  className="hover:text-accent transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {category.name}
+                </Link>
+              ))}
               <Link
                 to="/about"
                 className="hover:text-accent transition-colors"
@@ -98,6 +147,26 @@ export function Navbar() {
               >
                 À propos
               </Link>
+              <Button
+                variant="ghost"
+                className="justify-start"
+                onClick={() => {
+                  setTheme(theme === "light" ? "dark" : "light");
+                  setIsOpen(false);
+                }}
+              >
+                {theme === "light" ? (
+                  <>
+                    <Moon className="h-5 w-5 mr-2" />
+                    Mode sombre
+                  </>
+                ) : (
+                  <>
+                    <Sun className="h-5 w-5 mr-2" />
+                    Mode clair
+                  </>
+                )}
+              </Button>
               <Button variant="ghost" size="icon">
                 <ShoppingCart className="h-5 w-5" />
               </Button>
