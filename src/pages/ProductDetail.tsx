@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, Heart } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { useCartStore } from "@/stores/cartStore";
 
 // Mock data - à remplacer par une vraie API plus tard
 const product = {
@@ -29,8 +30,18 @@ export default function ProductDetail() {
   const { toast } = useToast();
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const addItem = useCartStore((state) => state.addItem);
 
   const handleAddToCart = () => {
+    addItem(
+      {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.images[0],
+      },
+      quantity
+    );
     toast({
       title: "Produit ajouté au panier",
       description: `${quantity} ${product.name} ajouté(s) au panier`,
