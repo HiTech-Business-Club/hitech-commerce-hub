@@ -18,12 +18,11 @@ export default function Index() {
   const session = useSession();
   const initializeCart = useCartStore((state) => state.initializeCart);
 
-  // Initialize cart when user logs in
   useEffect(() => {
-    if (session?.user) {
+    if (session?.user?.id) {
       initializeCart(session.user.id);
     }
-  }, [session?.user, initializeCart]);
+  }, [session?.user?.id, initializeCart]);
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["products", sortBy],
@@ -46,8 +45,6 @@ export default function Index() {
       return data;
     },
   });
-
-  const maxPrice = Math.max(...(products?.map((p) => p.price || 0) || [0]));
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -94,7 +91,7 @@ export default function Index() {
             onSearch={handleSearch}
             onPriceFilter={handlePriceFilter}
             onSortChange={handleSortChange}
-            maxPrice={maxPrice}
+            maxPrice={Math.max(...(products?.map((p) => p.price || 0) || [0]))}
           />
           
           {isLoading ? (

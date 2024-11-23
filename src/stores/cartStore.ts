@@ -30,7 +30,6 @@ export const useCartStore = create<CartStore>((set, get) => ({
   initializeCart: async (userId: string) => {
     set({ isLoading: true });
     try {
-      // Get or create cart
       let { data: cart } = await supabase
         .from("carts")
         .select("id")
@@ -48,7 +47,6 @@ export const useCartStore = create<CartStore>((set, get) => ({
         cart = newCart;
       }
 
-      // Get cart items
       const { data: items, error } = await supabase
         .from("cart_items")
         .select(`
@@ -70,9 +68,9 @@ export const useCartStore = create<CartStore>((set, get) => ({
         items: items.map((item) => ({
           id: item.products.id.toString(),
           name: item.products.name,
-          price: item.products.price,
+          price: item.products.price || 0,
           quantity: item.quantity,
-          image: item.products.image_url,
+          image: item.products.image_url || '',
         })),
       });
     } catch (error) {
