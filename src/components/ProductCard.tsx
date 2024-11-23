@@ -25,10 +25,12 @@ export function ProductCard({ id, name, price, image }: ProductCardProps) {
       });
       toast("Produit ajouté au panier", {
         description: `${name} a été ajouté à votre panier`,
+        duration: 3000,
       });
     } catch (error) {
       toast("Erreur", {
         description: "Impossible d'ajouter le produit au panier",
+        duration: 3000,
       });
     }
   };
