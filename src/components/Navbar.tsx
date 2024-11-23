@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ShoppingCart, Menu, X } from "lucide-react";
 import { Button } from "./ui/button";
+import { AuthModal } from "./AuthModal";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,17 +18,18 @@ export function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/products" className="hover:text-accent transition-colors">
-              Products
+              Produits
             </Link>
             <Link to="/categories" className="hover:text-accent transition-colors">
-              Categories
+              Catégories
             </Link>
             <Link to="/about" className="hover:text-accent transition-colors">
-              About
+              À propos
             </Link>
             <Button variant="ghost" size="icon">
               <ShoppingCart className="h-5 w-5" />
             </Button>
+            <AuthModal />
           </div>
 
           {/* Mobile Navigation Button */}
@@ -48,25 +50,26 @@ export function Navbar() {
                 className="hover:text-accent transition-colors"
                 onClick={() => setIsOpen(false)}
               >
-                Products
+                Produits
               </Link>
               <Link
                 to="/categories"
                 className="hover:text-accent transition-colors"
                 onClick={() => setIsOpen(false)}
               >
-                Categories
+                Catégories
               </Link>
               <Link
                 to="/about"
                 className="hover:text-accent transition-colors"
                 onClick={() => setIsOpen(false)}
               >
-                About
+                À propos
               </Link>
               <Button variant="ghost" size="icon">
                 <ShoppingCart className="h-5 w-5" />
               </Button>
+              <AuthModal />
             </div>
           </div>
         )}

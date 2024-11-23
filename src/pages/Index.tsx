@@ -2,6 +2,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { Cart } from "@/components/Cart";
 import { Navbar } from "@/components/Navbar";
 import { SearchAndFilter } from "@/components/SearchAndFilter";
+import { CategoryList } from "@/components/CategoryList";
 import { useState } from "react";
 
 // Mock data - à remplacer par une vraie API plus tard
@@ -11,24 +12,32 @@ const products = [
     name: "Smartphone Pro Max",
     price: 999.99,
     image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80",
+    categoryId: "1",
+    description: "Le dernier smartphone haut de gamme avec des fonctionnalités exceptionnelles.",
   },
   {
     id: "2",
     name: "Laptop Ultra",
     price: 1499.99,
     image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&q=80",
+    categoryId: "2",
+    description: "Un ordinateur portable puissant pour tous vos besoins.",
   },
   {
     id: "3",
     name: "Tablette Air",
     price: 599.99,
     image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=800&q=80",
+    categoryId: "3",
+    description: "Une tablette légère et performante.",
   },
   {
     id: "4",
     name: "Écouteurs Sans Fil",
     price: 199.99,
     image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80",
+    categoryId: "4",
+    description: "Des écouteurs sans fil avec une qualité sonore exceptionnelle.",
   },
 ];
 
@@ -68,18 +77,27 @@ export default function Index() {
           <h1 className="text-4xl font-bold font-heading">Nos Produits</h1>
           <Cart />
         </div>
-        <SearchAndFilter onSearch={handleSearch} onPriceFilter={handlePriceFilter} />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              id={product.id}
-              name={product.name}
-              price={product.price}
-              image={product.image}
-            />
-          ))}
-        </div>
+        
+        <section className="mb-12">
+          <h2 className="text-2xl font-bold font-heading mb-6">Catégories</h2>
+          <CategoryList />
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-bold font-heading mb-6">Tous les produits</h2>
+          <SearchAndFilter onSearch={handleSearch} onPriceFilter={handlePriceFilter} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                id={product.id}
+                name={product.name}
+                price={product.price}
+                image={product.image}
+              />
+            ))}
+          </div>
+        </section>
       </main>
     </div>
   );
