@@ -4,70 +4,63 @@ import { Navbar } from "@/components/Navbar";
 import { SearchAndFilter } from "@/components/SearchAndFilter";
 import { CategoryList } from "@/components/CategoryList";
 import { useState } from "react";
-
-// Mock data - à remplacer par une vraie API plus tard
-const products = [
-  {
-    id: "1",
-    name: "Smartphone Pro Max",
-    price: 999.99,
-    image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80",
-    categoryId: "1",
-    description: "Le dernier smartphone haut de gamme avec des fonctionnalités exceptionnelles.",
-  },
-  {
-    id: "2",
-    name: "Laptop Ultra",
-    price: 1499.99,
-    image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&q=80",
-    categoryId: "2",
-    description: "Un ordinateur portable puissant pour tous vos besoins.",
-  },
-  {
-    id: "3",
-    name: "Tablette Air",
-    price: 599.99,
-    image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=800&q=80",
-    categoryId: "3",
-    description: "Une tablette légère et performante.",
-  },
-  {
-    id: "4",
-    name: "Écouteurs Sans Fil",
-    price: 199.99,
-    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80",
-    categoryId: "4",
-    description: "Des écouteurs sans fil avec une qualité sonore exceptionnelle.",
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/components/ui/use-toast";
 
 export default function Index() {
-  const [filteredProducts, setFilteredProducts] = useState(products);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [priceRange, setPriceRange] = useState("");
+
+  const { data: products, isLoading, error } = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*');
+      
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Impossible de charger les produits",
+          variant: "destructive",
+        });
+        throw error;
+      }
+      return data;
+    },
+  });
 
   const handleSearch = (query: string) => {
-    const filtered = products.filter((product) =>
-      product.name.toLowerCase().includes(query.toLowerCase())
-    );
-    setFilteredProducts(filtered);
+    setSearchQuery(query);
   };
 
   const handlePriceFilter = (range: string) => {
-    let filtered = [...products];
-    switch (range) {
-      case "0-100":
-        filtered = products.filter((p) => p.price <= 100);
-        break;
-      case "100-500":
-        filtered = products.filter((p) => p.price > 100 && p.price <= 500);
-        break;
-      case "500+":
-        filtered = products.filter((p) => p.price > 500);
-        break;
-      default:
-        filtered = products;
-    }
-    setFilteredProducts(filtered);
+    setPriceRange(range);
   };
+
+  const filteredProducts = products?.filter((product) => {
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    let matchesPrice = true;
+
+    if (priceRange) {
+      const price = product.price || 0;
+      switch (priceRange) {
+        case "0-100":
+          matchesPrice = price <= 100;
+          break;
+        case "100-500":
+          matchesPrice = price > 100 && price <= 500;
+          break;
+        case "500+":
+          matchesPrice = price > 500;
+          break;
+      }
+    }
+
+    return matchesSearch && matchesPrice;
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -86,17 +79,34 @@ export default function Index() {
         <section>
           <h2 className="text-2xl font-bold font-heading mb-6">Tous les produits</h2>
           <SearchAndFilter onSearch={handleSearch} onPriceFilter={handlePriceFilter} />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                id={product.id}
-                name={product.name}
-                price={product.price}
-                image={product.image}
-              />
-            ))}
-          </div>
+          
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="space-y-4">
+                  <Skeleton className="h-48 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                  <Skeleton className="h-4 w-1/3" />
+                </div>
+              ))}
+            </div>
+          ) : error ? (
+            <div className="text-center text-red-500">
+              Une erreur est survenue lors du chargement des produits.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredProducts?.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id.toString()}
+                  name={product.name}
+                  price={product.price || 0}
+                  image={product.image_url || ''}
+                />
+              ))}
+            </div>
+          )}
         </section>
       </main>
     </div>
