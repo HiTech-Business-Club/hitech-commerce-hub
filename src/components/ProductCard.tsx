@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter } from "./ui/card";
 import { Button } from "./ui/button";
 import { useCartStore } from "@/stores/cartStore";
-import { toast } from "./ui/use-toast";
+import { toast } from "sonner";
 
 interface ProductCardProps {
   id: string;
@@ -22,8 +22,7 @@ export function ProductCard({ id, name, price, image }: ProductCardProps) {
       image,
       quantity: 1,
     });
-    toast({
-      title: "Produit ajouté",
+    toast("Produit ajouté", {
       description: `${name} a été ajouté à votre panier`,
     });
   };
