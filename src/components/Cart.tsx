@@ -4,10 +4,17 @@ import { ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
+import { useSession } from "@supabase/auth-helpers-react";
+import { supabase } from "@/integrations/supabase/client";
+import { loadStripe } from "@stripe/stripe-js";
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 export function Cart() {
-  const { items, removeItem, updateQuantity, total } = useCartStore();
+  const { items, removeItem, updateQuantity, total, clearCart } = useCartStore();
   const [open, setOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const session = useSession();
 
   const handleUpdateQuantity = useCallback((id: string, quantity: number) => {
     updateQuantity(id, quantity);
@@ -24,6 +31,43 @@ export function Cart() {
       description: `${name} a été retiré de votre panier`,
     });
   }, [removeItem]);
+
+  const handleCheckout = async () => {
+    if (!session) {
+      toast("Connexion requise", {
+        description: "Veuillez vous connecter pour continuer",
+      });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { items, userId: session.user.id },
+      });
+
+      if (error) throw error;
+
+      const stripe = await stripePromise;
+      if (!stripe) throw new Error('Stripe not loaded');
+
+      const { error: stripeError } = await stripe.redirectToCheckout({
+        sessionId: data.sessionId,
+      });
+
+      if (stripeError) throw stripeError;
+
+      clearCart();
+      setOpen(false);
+    } catch (error) {
+      console.error('Error:', error);
+      toast("Erreur", {
+        description: "Une erreur est survenue lors du paiement",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -98,13 +142,10 @@ export function Cart() {
                 </div>
                 <Button 
                   className="w-full mt-4"
-                  onClick={() => {
-                    toast("Commande en cours", {
-                      description: "Cette fonctionnalité sera bientôt disponible",
-                    });
-                  }}
+                  onClick={handleCheckout}
+                  disabled={isLoading}
                 >
-                  Passer la commande
+                  {isLoading ? "Chargement..." : "Passer la commande"}
                 </Button>
               </div>
             </>
