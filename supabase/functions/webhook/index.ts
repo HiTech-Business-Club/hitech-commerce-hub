@@ -9,11 +9,6 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') as string, {
 
 const cryptoProvider = Stripe.createSubtleCryptoProvider()
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL')
-const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-
-const supabase = createClient(supabaseUrl!, supabaseServiceRoleKey!)
-
 serve(async (req) => {
   const signature = req.headers.get('Stripe-Signature')
 
@@ -27,13 +22,12 @@ serve(async (req) => {
       cryptoProvider
     )
 
-    console.log(`Event type: ${event.type}`)
+    console.log(`Event received: ${event.type}`)
 
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object
         
-        // Update order status
         const { error } = await supabase
           .from('orders')
           .update({ status: 'paid' })
@@ -42,7 +36,6 @@ serve(async (req) => {
         if (error) throw error
         break
       }
-      // Add other webhook events as needed
     }
 
     return new Response(JSON.stringify({ received: true }), {

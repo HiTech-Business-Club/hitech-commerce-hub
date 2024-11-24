@@ -7,11 +7,6 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') as string, {
   httpClient: Stripe.createFetchHttpClient(),
 })
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL')
-const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-
-const supabase = createClient(supabaseUrl!, supabaseServiceRoleKey!)
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -31,6 +26,7 @@ serve(async (req) => {
       .insert({
         user_id: userId,
         total: items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0),
+        status: 'pending'
       })
       .select()
       .single()
